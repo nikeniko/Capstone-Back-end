@@ -16,7 +16,7 @@ public class TestDriveController {
     @PostMapping("/request")
     public ResponseEntity<String> requestTestDrive(@RequestBody TestDriveRequest request) {
         System.out.println("Received test drive request: " + request);
-        System.out.println("Vehicle Model: " + request.getVehicle()); // Log the vehicle model
+        System.out.println("Vehicle Model: " + request.getVehicle());
 
         try {
             testDriveService.handleTestDriveRequest(request);

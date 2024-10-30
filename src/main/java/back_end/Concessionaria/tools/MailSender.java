@@ -6,9 +6,13 @@ import kong.unirest.core.JsonNode;
 import kong.unirest.core.Unirest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class MailSender {
+
+    private static final Logger logger = LoggerFactory.getLogger(MailSender.class);
 
     @Value("${MAILGUN_KEY}")
     private String apiKey;
@@ -19,13 +23,6 @@ public class MailSender {
     @Value("${EMAIL_FROM}")
     private String emailFrom;
 
-    /**
-     * Send a test drive booking confirmation email to the client.
-     *
-     * @param cliente The client details for sending the email.
-     * @param veicolo The vehicle details for the test drive.
-     * @param date    The date of the test drive.
-     */
     public void sendTestDriveConfirmationEmail(Cliente cliente, String veicolo, String date) {
         try {
             HttpResponse<JsonNode> response = Unirest.post("https://api.mailgun.net/v3/" + this.domainName + "/messages")
@@ -39,22 +36,14 @@ public class MailSender {
                             "Ti aspettiamo per la tua esperienza di guida!")
                     .asJson();
 
-            if (response.getStatus() != 200) {
-                throw new RuntimeException("Failed to send email: " + response.getBody());
+            if (response.getStatus() < 200 || response.getStatus() >= 300) {
+                throw new RuntimeException("Failed to send email: " + response.getStatus() + " " + response.getBody());
             }
         } catch (Exception e) {
-            System.err.println("Error sending email: " + e.getMessage());
+            logger.error("Error sending email: {}", e.getMessage());
         }
     }
 
-    /**
-     * Send a quotation request confirmation email to the client.
-     *
-     * @param nomeCliente The client's name.
-     * @param emailCliente The client's email address.
-     * @param veicolo The vehicle details for the quotation.
-     * @param prezzo  The quoted price for the vehicle.
-     */
     public void sendQuotationConfirmationEmail(String nomeCliente, String emailCliente, String veicolo, double prezzo) {
         try {
             HttpResponse<JsonNode> response = Unirest.post("https://api.mailgun.net/v3/" + this.domainName + "/messages")
@@ -70,11 +59,11 @@ public class MailSender {
                             "Il Team di Autodrive")
                     .asJson();
 
-            if (response.getStatus() != 200) {
+            if (response.getStatus() < 200 || response.getStatus() >= 300) {
                 throw new RuntimeException("Failed to send email: " + response.getBody());
             }
         } catch (Exception e) {
-            System.err.println("Error sending email: " + e.getMessage());
+            logger.error("Error sending email: {}", e.getMessage());
         }
     }
 }
